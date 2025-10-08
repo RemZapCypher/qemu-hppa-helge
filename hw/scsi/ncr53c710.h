@@ -20,7 +20,7 @@
 #include "hw/scsi/scsi.h"
 #include "qemu/fifo8.h"
 #include "qom/object.h"
-#include "exec/memory.h"
+#include "system/memory.h"
 #include "hw/irq.h"
 #include "qemu/timer.h"
 
