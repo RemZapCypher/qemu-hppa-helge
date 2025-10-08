@@ -3035,7 +3035,7 @@ static void sysbus_ncr710_init(Object *obj)
     s->ncr710.dstat = NCR710_DSTAT_DFE;
 }
 
-static void sysbus_ncr710_class_init(ObjectClass *oc, void *data)
+static void sysbus_ncr710_class_init(ObjectClass *oc, const void *data)
 {
     DeviceClass *dc = DEVICE_CLASS(oc);
 
