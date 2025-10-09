@@ -19,6 +19,7 @@
 #define DINO_UART_HPA   0xfff83000
 #define  DINO_UART_BASE 0xfff83800
 #define DINO_SCSI_HPA   0xfff8c000
+#define LASI_HPA_715    0xf0100000
 #define LASI_HPA        0xffd00000
 #define LASI_UART_HPA   0xffd05000
 #define LASI_SCSI_HPA   0xffd06000

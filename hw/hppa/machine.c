@@ -43,8 +43,7 @@
 #define HPA_POWER_BUTTON        (FIRMWARE_END - 0x10)
 static hwaddr soft_power_reg;
 
-#define enable_lasi_lan()       1
-#define enable_lasi_scsi()      1
+#define enable_lasi_lan()       0       /* XXX */
 
 static DeviceState *lasi_dev;
 
@@ -364,13 +363,12 @@ static void machine_HP_common_init_tail(MachineState *machine, PCIBus *pci_bus,
 
     /* SCSI disk setup */
     if (drive_get_max_bus(IF_SCSI) >= 0) {
-        if (enable_lasi_scsi()) {
-            dev = lasi_ncr710_init(addr_space, LASI_SCSI_HPA,
+        if (!pci_bus) {
+            dev = lasi_ncr710_init(addr_space, LASI_HPA_715 + 0x6000,
                                   qdev_get_gpio_in(lasi_dev, LASI_IRQ_SCSI_HPA));
             if (dev) {
-                qemu_log("HPPA Machine: Using LASI NCR710 SCSI controller at LASI_SCSI_HPA\n");
                 lasi_ncr710_handle_legacy_cmdline(dev);
-            } else { /* QEMU log is faster */
+            } else {
                 qemu_log("HPPA Machine: Warning - Failed to create LASI NCR710 controller\n");
             }
         } else {
@@ -399,11 +397,13 @@ static void machine_HP_common_init_tail(MachineState *machine, PCIBus *pci_bus,
                         enable_lasi_lan());
     }
 
-    pci_init_nic_devices(pci_bus, mc->default_nic);
+    if (pci_bus) {
+        pci_init_nic_devices(pci_bus, mc->default_nic);
+    }
 
     /* BMC board: HP Diva GSP */
-    dev = qdev_new("diva-gsp");
-    if (!object_property_get_bool(OBJECT(dev), "disable", NULL)) {
+    dev = pci_bus ? qdev_new("diva-gsp") : NULL;
+    if (dev && !object_property_get_bool(OBJECT(dev), "disable", NULL)) {
         pci_dev = pci_new_multifunction(PCI_DEVFN(2, 0), "diva-gsp");
         if (!lasi_dev) {
             /* bind default keyboard/serial to Diva card */
@@ -540,6 +540,65 @@ static void machine_HP_common_init_tail(MachineState *machine, PCIBus *pci_bus,
 }
 
 /*
+ * Create HP 715/64 workstation
+ */
+static void machine_HP_715_init(MachineState *machine)
+{
+    DeviceState *dev;
+    MemoryRegion *addr_space = get_system_memory();
+    TranslateFn *translate;
+    ISABus *isa_bus;
+
+    /* Create CPUs and RAM.  */
+    translate = machine_HP_common_init_cpus(machine);
+
+    if (hppa_is_pa20(&cpu[0]->env)) {
+        error_report("The HP 715/64 workstation requires a 32-bit "
+                     "CPU. Use '-machine 715' instead.");
+        exit(1);
+    }
+
+    /* Create ISA bus, needed for PS/2 kbd/mouse port emulation */
+    isa_bus = hppa_isa_bus(translate(NULL, IDE_HPA));
+    assert(isa_bus);
+
+    /* Init Lasi chip */
+    lasi_dev = DEVICE(lasi_init());
+    memory_region_add_subregion(addr_space, translate(NULL, LASI_HPA_715),
+                                sysbus_mmio_get_region(
+                                    SYS_BUS_DEVICE(lasi_dev), 0));
+
+    /* Serial ports: Lasi use a 7.272727 MHz clock. */
+    serial_mm_init(addr_space, translate(NULL, LASI_HPA_715 + LASI_UART + 0x800), 0,
+        qdev_get_gpio_in(lasi_dev, LASI_IRQ_UART_HPA), 7272727 / 16,
+        serial_hd(0), DEVICE_BIG_ENDIAN);
+    /* bind default keyboard/serial to serial card */
+    // qdev_prop_set_chr(DEVICE(pci_dev), "chardev1", serial_hd(0));
+
+    /* Parallel port */
+    parallel_mm_init(addr_space, translate(NULL, LASI_HPA_715 + LASI_LPT + 0x800), 0,
+                     qdev_get_gpio_in(lasi_dev, LASI_IRQ_LPT_HPA),
+                     parallel_hds[0]);
+
+    /* PS/2 Keyboard/Mouse */
+    dev = qdev_new(TYPE_LASIPS2);
+    sysbus_realize_and_unref(SYS_BUS_DEVICE(dev), &error_fatal);
+    sysbus_connect_irq(SYS_BUS_DEVICE(dev), 0,
+                       qdev_get_gpio_in(lasi_dev, LASI_IRQ_PS2KBD_HPA));
+    memory_region_add_subregion(addr_space,
+                                translate(NULL, LASI_HPA_715 + LASI_PS2),
+                                sysbus_mmio_get_region(SYS_BUS_DEVICE(dev),
+                                                       0));
+    memory_region_add_subregion(addr_space,
+                                translate(NULL, LASI_HPA_715 + LASI_PS2 + 0x100),
+                                sysbus_mmio_get_region(SYS_BUS_DEVICE(dev),
+                                                       1));
+
+    /* Add SCSI discs, NICs, graphics & load firmware */
+    machine_HP_common_init_tail(machine, NULL, translate);
+}
+
+/*
  * Create HP B160L workstation
  */
 static void machine_HP_B160L_init(MachineState *machine)
@@ -588,7 +647,7 @@ static void machine_HP_B160L_init(MachineState *machine)
 
     /* Parallel port */
     parallel_mm_init(addr_space, translate(NULL, LASI_LPT_HPA + 0x800), 0,
-                     qdev_get_gpio_in(lasi_dev, LASI_IRQ_LAN_HPA),
+                     qdev_get_gpio_in(lasi_dev, LASI_IRQ_LPT_HPA),
                      parallel_hds[0]);
 
     /* PS/2 Keyboard/Mouse */
@@ -697,6 +756,43 @@ static void hppa_nmi(NMIState *n, int cpu_index, Error **errp)
     }
 }
 
+static void HP_715_machine_init_class_init(ObjectClass *oc, const void *data)
+{
+    static const char * const valid_cpu_types[] = {
+        TYPE_HPPA_CPU,
+        NULL
+    };
+    MachineClass *mc = MACHINE_CLASS(oc);
+    NMIClass *nc = NMI_CLASS(oc);
+
+    mc->desc = "HP 715/64 workstation";
+    mc->default_cpu_type = TYPE_HPPA_CPU;
+    mc->valid_cpu_types = valid_cpu_types;
+    mc->init = machine_HP_715_init;
+    mc->reset = hppa_machine_reset;
+    mc->block_default_type = IF_SCSI;
+    mc->max_cpus = HPPA_MAX_CPUS;
+    mc->default_cpus = 1;
+    mc->is_default = true;
+    mc->default_ram_size = 256 * MiB;
+    mc->default_boot_order = "cd";
+    mc->default_ram_id = "ram";
+    mc->default_nic = "tulip";
+
+    nc->nmi_monitor_handler = hppa_nmi;
+}
+
+static const TypeInfo HP_715_machine_init_typeinfo = {
+    .name = MACHINE_TYPE_NAME("715"),
+    .parent = TYPE_MACHINE,
+    .class_init = HP_715_machine_init_class_init,
+    .interfaces = (const InterfaceInfo[]) {
+        { TYPE_NMI },
+        { }
+    },
+};
+
+
 static void HP_B160L_machine_init_class_init(ObjectClass *oc, const void *data)
 {
     static const char * const valid_cpu_types[] = {
@@ -748,7 +844,7 @@ static void HP_C3700_machine_init_class_init(ObjectClass *oc, const void *data)
     mc->init = machine_HP_C3700_init;
     mc->reset = hppa_machine_reset;
     mc->block_default_type = IF_SCSI;
-    mc->max_cpus = HPPA_MAX_CPUS;
+    mc->max_cpus = 8;   /* limited by module ID < 16 */
     mc->default_cpus = 1;
     mc->is_default = false;
     mc->default_ram_size = 1024 * MiB;
@@ -771,6 +867,7 @@ static const TypeInfo HP_C3700_machine_init_typeinfo = {
 
 static void hppa_machine_init_register_types(void)
 {
+    type_register_static(&HP_715_machine_init_typeinfo);
     type_register_static(&HP_B160L_machine_init_typeinfo);
     type_register_static(&HP_C3700_machine_init_typeinfo);
 }
