@@ -364,7 +364,7 @@ static void machine_HP_common_init_tail(MachineState *machine, PCIBus *pci_bus,
     /* SCSI disk setup */
     if (drive_get_max_bus(IF_SCSI) >= 0) {
         if (!pci_bus) {
-            dev = lasi_ncr710_init(addr_space, LASI_HPA_715 + 0x6000,
+            dev = lasi_ncr710_init(addr_space, translate(NULL, LASI_HPA_715 + 0x6000),
                                   qdev_get_gpio_in(lasi_dev, LASI_IRQ_SCSI_HPA));
             if (dev) {
                 lasi_ncr710_handle_legacy_cmdline(dev);
