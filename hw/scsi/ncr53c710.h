@@ -86,101 +86,13 @@
 #define NCR710_DCNTL_REG        0x3B    /* DMA Control */
 #define NCR710_ADDER_REG        0x3C    /* Adder Sum Output (32-bit, LE) */
 
-
-
-#define AFTER_SELECTION 	0x100
-#define BEFORE_CMD 		    0x200
-#define AFTER_CMD 		    0x300
-#define AFTER_STATUS 		0x400
-#define AFTER_DATA_IN		0x500
-#define AFTER_DATA_OUT		0x600
-#define DURING_DATA_IN		0x700
-
-#define NOT_MSG_OUT 		0x10
-#define UNEXPECTED_PHASE 	0x20
-#define NOT_MSG_IN 		    0x30
-#define UNEXPECTED_MSG		0x40
-#define MSG_IN			    0x50
-#define SDTR_MSG_R		    0x60
-#define REJECT_MSG_R		0x70
-#define DISCONNECT		    0x80
-#define MSG_OUT			    0x90
-#define WDTR_MSG_R		    0xA0
-
-#define GOOD_STATUS     0x1
-
-#define NOT_MSG_OUT_AFTER_SELECTION         0x110
-#define UNEXPECTED_PHASE_BEFORE_CMD         0x220
-#define UNEXPECTED_PHASE_AFTER_CMD          0x320
-#define NOT_MSG_IN_AFTER_STATUS             0x430
-#define GOOD_STATUS_AFTER_STATUS            0x401
-#define UNEXPECTED_PHASE_AFTER_DATA_IN      0x520
-#define UNEXPECTED_PHASE_AFTER_DATA_OUT     0x620
-#define UNEXPECTED_MSG_BEFORE_CMD           0x240
-#define MSG_IN_BEFORE_CMD                   0x250
-#define MSG_IN_AFTER_CMD                    0x350
-#define SDTR_MSG_BEFORE_CMD                 0x260
-#define REJECT_MSG_BEFORE_CMD               0x270
-#define DISCONNECT_AFTER_CMD                0x380
-#define SDTR_MSG_AFTER_CMD                  0x360
-#define WDTR_MSG_AFTER_CMD                  0x3A0
-#define MSG_IN_AFTER_STATUS                 0x440
-#define DISCONNECT_AFTER_DATA               0x580
-#define MSG_IN_AFTER_DATA_IN                0x550
-#define MSG_IN_AFTER_DATA_OUT               0x650
-#define MSG_OUT_AFTER_DATA_IN               0x590
-#define DATA_IN_AFTER_DATA_IN               0x5a0
-#define MSG_IN_DURING_DATA_IN               0x750
-#define DISCONNECT_DURING_DATA              0x780
-
-#define RESELECTED_DURING_SELECTION      0x1000
-#define COMPLETED_SELECTION_AS_TARGET    0x1001
-#define RESELECTION_IDENTIFIED           0x1003
-
-#define FATAL                   0x2000
-#define FATAL_UNEXPECTED_RESELECTION_MSG 0x2000
-#define FATAL_SEND_MSG          0x2001
-#define FATAL_NOT_MSG_IN_AFTER_SELECTION 0x2002
-#define FATAL_ILLEGAL_MSG_LENGTH 0x2003
-
-#define DEBUG_INTERRUPT     0x3000
-#define DEBUG_INTERRUPT1    0x3001
-#define DEBUG_INTERRUPT2    0x3002
-#define DEBUG_INTERRUPT3    0x3003
-#define DEBUG_INTERRUPT4    0x3004
-#define DEBUG_INTERRUPT5    0x3005
-#define DEBUG_INTERRUPT6    0x3006
-
-#define COMMAND_COMPLETE_MSG    0x00
-#define EXTENDED_MSG		    0x01
-#define SDTR_MSG		        0x01
-#define SAVE_DATA_PTRS_MSG	    0x02
-#define RESTORE_DATA_PTRS_MSG	0x03
-#define WDTR_MSG		        0x03
-#define DISCONNECT_MSG		    0x04
-#define REJECT_MSG		        0x07
-#define PARITY_ERROR_MSG	    0x09
-#define SIMPLE_TAG_MSG		    0x20
-#define IDENTIFY_MSG		    0x80
-#define IDENTIFY_MSG_MASK	    0x7F
-#define TWO_BYTE_MSG		    0x20
-#define TWO_BYTE_MSG_MASK	    0x0F
-
-
-
 /* NCR710 register size */
 #define NCR710_REG_SIZE         0x100
-
-/* Alias names for backward compatibility */
-#define NCR710_REVISION_2       0x02
-
-
 
 /* Other constants */
 #define NCR710_BUF_SIZE         4096
 #define NCR710_HOST_ID          7
 #define NCR710_MAX_MSGIN_LEN    8
-
 #define NCR710_SCSI_FIFO_SIZE   8
 
 /* Forward declarations */
@@ -276,28 +188,18 @@ struct NCR710State {
     int carry;
     bool script_active;
     int waiting;
-    int dma_pending;
     uint8_t command_complete;
 
     /* Script execution timer */
     QEMUTimer *script_timer;
     QEMUTimer *completion_irq_timer;
     QEMUTimer *reselection_retry_timer;  /* Timer for deferred reselection retry */
-
-    /* FIX #17: Saved DSPS value for delayed interrupt */
     uint32_t saved_dsps;
 
-    /* FIX #19: Track last DSPS to detect rapid 0x780->0x401 sequence */
-    uint32_t last_dsps_generated;
 
     /* Additional required fields */
     uint32_t select_tag;       /* Select tag for SCSI device selection */
     uint8_t current_lun;       /* Current logical unit number */
-    bool big_endian;           /* Endianness flag */
-    int burst_length;          /* DMA burst length */
-    bool tolerant_enabled;     /* Tolerant mode enabled flag */
-    bool differential_mode;    /* Differential mode flag */
-    bool cache_line_burst;     /* Cache line burst flag */
     uint8_t reselection_id;
     bool wait_reselect;
 };
@@ -311,7 +213,6 @@ typedef struct SysBusNCR710State {
     NCR710State ncr710;
 } SysBusNCR710State;
 
-/* Define register size */
 #define NCR710_REG_SIZE         0x100
 
 static inline NCR710State *ncr710_from_scsi_bus(SCSIBus *bus)
@@ -324,7 +225,6 @@ static inline SysBusNCR710State *sysbus_from_ncr710(NCR710State *s)
     return container_of(s, SysBusNCR710State, ncr710);
 }
 
-/* Function prototypes */
 DeviceState *ncr53c710_init(MemoryRegion *address_space, hwaddr addr, qemu_irq irq);
 DeviceState *ncr710_device_create_sysbus(hwaddr addr, qemu_irq irq);
 void ncr710_reg_write(void *opaque, hwaddr addr, uint64_t val, unsigned size);
