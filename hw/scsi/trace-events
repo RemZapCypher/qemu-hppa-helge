@@ -306,6 +306,59 @@ lsi_reg_write(const char *name, int offset, uint8_t val) "Write reg %s 0x%x = 0x
 lsi_scripts_timer_triggered(void) "SCRIPTS timer triggered"
 lsi_scripts_timer_start(void) "SCRIPTS timer started"
 
+# ncr53c710.c
+ncr710_device_realize(void) "NCR710 device realized"
+ncr710_reset(void) "NCR710 Reset"
+ncr710_update_irq(int level, uint8_t dstat, uint8_t sstat0, uint8_t sstat1) "Update IRQ level %d dstat 0x%02x sstat 0x%02x0x%02x"
+ncr710_update_irq_disconnected(void) "Handled IRQs & disconnected, looking for pending processes"
+ncr710_script_scsi_interrupt(uint8_t stat0, uint8_t prev_sstat0) "SCSI Interrupt 0x%02x prev 0x%02x"
+ncr710_script_dma_interrupt(uint8_t stat, uint8_t dstat) "DMA Interrupt 0x%x prev 0x%x"
+ncr710_bad_phase_interrupt(void) "Phase mismatch interrupt"
+ncr710_bad_selection(uint32_t id) "Selected absent target %"PRIu32
+ncr710_do_dma_unavailable(void) "DMA no data available"
+ncr710_do_dma(uint64_t addr, int len, int out) "DMA addr=0x%"PRIx64" len=%d out=%d"
+ncr710_dma_fifo_fill(int filled) "DMA FIFO filled %d bytes"
+ncr710_dma_fifo_drain(int drained) "DMA FIFO drained %d bytes"
+ncr710_queue_command(uint32_t tag) "Queueing tag=0x%"PRIx32
+ncr710_add_msg_byte_error(void) "MSG IN data too long"
+ncr710_add_msg_byte(uint8_t data) "MSG IN 0x%02x"
+ncr710_reselect(int id) "Reselected target %d"
+ncr710_queue_req_error(void *p) "Multiple IO pending for request %p"
+ncr710_queue_req(uint32_t tag) "Queueing IO tag=0x%"PRIx32
+ncr710_command_complete(uint32_t status) "Command complete status=%"PRId32
+ncr710_transfer_data(uint32_t tag, uint32_t len) "Data ready tag=0x%"PRIx32" len=%"PRId32
+ncr710_do_command(uint32_t dbc) "Send command len=%"PRId32
+ncr710_do_status(uint32_t dbc, uint8_t status) "Get status len=%"PRId32" status=%d"
+ncr710_execute_script_stop(void) "SCRIPTS execution stopped"
+ncr710_execute_script_start(uint32_t dsp) "SCRIPTS execution started at 0x%"PRIx32
+ncr710_reg_read(const char *name, int offset, uint8_t ret) "Read reg %s 0x%x = 0x%02x"
+ncr710_reg_write(const char *name, int offset, uint8_t val) "Write reg %s 0x%x = 0x%02x"
+ncr710_dma_fifo_init(void) "DMA FIFO initialized"
+ncr710_scsi_fifo_init(void) "SCSI FIFO initialized"
+ncr710_dma_fifo_push(uint8_t data, uint8_t parity, int count) "DMA FIFO push: data=0x%02x parity=%d count=%d"
+ncr710_dma_fifo_pop(uint8_t data, uint8_t parity, int count) "DMA FIFO pop: data=0x%02x parity=%d count=%d"
+ncr710_scsi_fifo_push(uint8_t data, uint8_t parity, int count) "SCSI FIFO push: data=0x%02x parity=%d count=%d"
+ncr710_scsi_fifo_pop(uint8_t data, uint8_t parity, int count) "SCSI FIFO pop: data=0x%02x parity=%d count=%d"
+ncr710_parity_error(uint8_t data, uint8_t expected, uint8_t received) "Parity error: data=0x%02x expected=%d received=%d"
+
+# lasi_ncr710.c
+lasi_ncr710_device_realize(void) "LASI NCR710 device realized"
+lasi_ncr710_device_reset(void) "LASI NCR710 device reset"
+lasi_ncr710_timers_initialized(uint64_t script, uint64_t completion, uint64_t reselection) "LASI NCR710: Timers initialized - script=0x%"PRIx64" completion=0x%"PRIx64" reselection=0x%"PRIx64
+lasi_ncr710_reg_read(uint32_t addr, uint32_t val, unsigned size) "LASI NCR710: Read addr=0x%03x val=0x%08x size=%u"
+lasi_ncr710_reg_write(uint32_t addr, uint32_t val, unsigned size) "LASI NCR710: Write addr=0x%03x val=0x%08x size=%u"
+lasi_ncr710_reg_read_id(uint32_t hw_type, uint32_t sversion, uint32_t val) "LASI NCR710: Device ID read hw_type=%u sversion=0x%04x -> 0x%08x"
+lasi_ncr710_reg_read_hversion(uint32_t hversion) "LASI NCR710: HVersion read -> 0x%02x"
+lasi_ncr710_reg_read_scsi_id(uint32_t scsi_id) "LASI NCR710: SCSI ID read -> 0x%08x"
+lasi_ncr710_reg_forward_read(uint32_t addr, uint32_t val) "LASI NCR710: Forward read to NCR710 core addr=0x%03x val=0x%08x"
+lasi_ncr710_reg_forward_write(uint32_t addr, uint32_t val) "LASI NCR710: Forward write to NCR710 core addr=0x%03x val=0x%08x"
+lasi_ncr710_command_complete(uint32_t status, const char *status_name, size_t resid) "LASI NCR710: Command complete status=0x%02x (%s) resid=%zu"
+lasi_ncr710_transfer_data(uint32_t len) "LASI NCR710: Transfer data len=%u"
+lasi_ncr710_request_cancelled(void *req) "LASI NCR710: Request cancelled req=%p"
+lasi_ncr710_handle_legacy_cmdline(int busnr, int found_drives) "LASI NCR710: Handle legacy cmdline busnr=%d found_drives=%d"
+lasi_ncr710_legacy_drive_found(int busnr, int unit) "LASI NCR710: Found legacy drive at bus=%d unit=%d"
+lasi_ncr710_scsi_device_created(const char *type) "LASI NCR710: SCSI device created: %s"
+
 # virtio-scsi.c
 virtio_scsi_cmd_req(int lun, uint32_t tag, uint8_t cmd) "virtio_scsi_cmd_req lun=%u tag=0x%x cmd=0x%x"
 virtio_scsi_cmd_resp(int lun, uint32_t tag, int response, uint8_t status) "virtio_scsi_cmd_resp lun=%u tag=0x%x response=%d status=0x%x"
@@ -361,3 +414,5 @@ scsi_generic_realize_blocksize(int blocksize) "block size %d"
 scsi_generic_aio_sgio_command(uint32_t tag, uint8_t cmd, uint32_t timeout) "generic aio sgio: tag=0x%x cmd=0x%x timeout=%u"
 scsi_generic_ioctl_sgio_command(uint8_t cmd, uint32_t timeout) "generic ioctl sgio: cmd=0x%x timeout=%u"
 scsi_generic_ioctl_sgio_done(uint8_t cmd, int ret, uint8_t status, uint8_t host_status) "generic ioctl sgio: cmd=0x%x ret=%d status=0x%x host_status=0x%x"
+
+
