@@ -276,7 +276,7 @@ static void lasi_ncr710_instance_init(Object *obj)
     memset(&s->ncr710, 0, sizeof(s->ncr710));
 }
 
-static void lasi_ncr710_class_init(ObjectClass *klass, void *data)
+static void lasi_ncr710_class_init(ObjectClass *klass, const void *data)
 {
     DeviceClass *dc = DEVICE_CLASS(klass);
 
