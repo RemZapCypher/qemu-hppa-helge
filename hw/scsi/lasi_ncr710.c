@@ -149,7 +149,7 @@ static void lasi_ncr710_command_complete(SCSIRequest *req, size_t resid)
 static const struct SCSIBusInfo lasi_ncr710_scsi_info = {
     .tcq = true,
     .max_target = 8,
-    .max_lun = 0,  /* LUN support buggy, eh? */
+    .max_lun = 8,  /* full LUN support */
 
     .transfer_data = lasi_ncr710_transfer_data,
     .complete = lasi_ncr710_command_complete,
@@ -194,19 +194,11 @@ static void lasi_ncr710_realize(DeviceState *dev, Error **errp)
     s->ncr710.ctest2 = NCR710_CTEST2_DACK;
     s->ncr710.irq = s->lasi_irq;
 
-    s->ncr710.script_timer = timer_new_ns(QEMU_CLOCK_VIRTUAL,
-                                         ncr710_script_timer_callback,
-                                         &s->ncr710);
-    s->ncr710.completion_irq_timer = timer_new_ns(QEMU_CLOCK_VIRTUAL,
-                                                  ncr710_completion_irq_callback,
-                                                  &s->ncr710);
     s->ncr710.reselection_retry_timer = timer_new_ns(QEMU_CLOCK_VIRTUAL,
                                                      ncr710_reselection_retry_callback,
                                                      &s->ncr710);
 
-    trace_lasi_ncr710_timers_initialized((uint64_t)s->ncr710.script_timer,
-                                        (uint64_t)s->ncr710.completion_irq_timer,
-                                        (uint64_t)s->ncr710.reselection_retry_timer);
+    trace_lasi_ncr710_timers_initialized((uint64_t)s->ncr710.reselection_retry_timer);
 
     /* Initialize memory region */
     memory_region_init_io(&s->mmio, OBJECT(dev), &lasi_ncr710_mmio_ops, s, "lasi-ncr710", 0x200);

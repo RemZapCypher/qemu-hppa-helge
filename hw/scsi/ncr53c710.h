@@ -214,10 +214,7 @@ struct NCR710State {
     int32_t waiting;            /* NCR710WaitState values */
     uint8_t command_complete;   /* NCR710CommandState values */
 
-    /* Script execution timer */
-    QEMUTimer *script_timer;
-    QEMUTimer *completion_irq_timer;
-    QEMUTimer *reselection_retry_timer;  /* Timer for deferred reselection retry */
+    QEMUTimer *reselection_retry_timer;
     uint32_t saved_dsps;
 
 
@@ -262,9 +259,7 @@ void ncr710_transfer_data(SCSIRequest *req, uint32_t len);
 void ncr710_execute_script(NCR710State *s);
 void ncr710_set_phase(NCR710State *s, int phase);
 
-/* NCR710 timer callbacks */
-void ncr710_script_timer_callback(void *opaque);
-void ncr710_completion_irq_callback(void *opaque);
+/* NCR710 timer callback */
 void ncr710_reselection_retry_callback(void *opaque);
 
 #endif /* HW_NCR53C710_H */
