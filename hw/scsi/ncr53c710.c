@@ -835,7 +835,7 @@ void ncr710_transfer_data(SCSIRequest *req, uint32_t len)
     }
 
     if (req->hba_private != s->current ||
-        (ncr710_irq_on_rsl(s) && !(s->scntl1 & NCR710_SCNTL1_CON)) || 
+        (ncr710_irq_on_rsl(s) && !(s->scntl1 & NCR710_SCNTL1_CON)) ||
         s->waiting == NCR710_WAIT_RESELECT) {
         int queue_result = ncr710_queue_req(s, req, len);
         NCR710_DPRINTF("transfer_data: queued req, result=%d\n", queue_result);
@@ -847,11 +847,11 @@ void ncr710_transfer_data(SCSIRequest *req, uint32_t len)
     /* Host adapter (re)connected */
     s->current->dma_len = len;
     s->command_complete = NCR710_CMD_DATA_READY;
-    
+
     if (!s->current) {
         return;
     }
-    
+
     if (s->waiting) {
         s->scntl1 |= NCR710_SCNTL1_CON;
         s->istat |= NCR710_ISTAT_CON;
@@ -886,9 +886,9 @@ void ncr710_transfer_data(SCSIRequest *req, uint32_t len)
         ncr710_update_irq(s);
         return;
     }
-    NCR710_DPRINTF("transfer_data: data ready (active=%d, waiting=%d)\n", 
+    NCR710_DPRINTF("transfer_data: data ready (active=%d, waiting=%d)\n",
                    s->script_active, s->waiting);
-    
+
     if (!s->script_active && !s->waiting) {
         NCR710_DPRINTF("transfer_data: restarting script for data transfer\n");
         ncr710_execute_script(s);
@@ -1264,7 +1264,7 @@ void ncr710_reselection_retry_callback(void *opaque)
     }
 
     if (s->istat & (NCR710_ISTAT_SIP | NCR710_ISTAT_DIP)) {
-        timer_mod(s->reselection_retry_timer, 
+        timer_mod(s->reselection_retry_timer,
                   qemu_clock_get_ns(QEMU_CLOCK_VIRTUAL) + 1000);
         return;
     }
