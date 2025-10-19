@@ -478,23 +478,22 @@ static void ncr710_handle_parity_error(NCR710State *s)
 /*
  * NCR710 SCSI FIFO IMPLEMENTATION
  *
- * NCR710 SCSI FIFO Specifications:
- * - Width: 9 bits (8 data bits + 1 parity bit per byte lane)
- * - Data Width: 1 byte (8 bits) per transfer
- * - Depth: 8 transfers deep
- * - Total Capacity: 8-byte FIFO
+ * Hardware Specifications (NCR53C710 datasheet):
+ * - Width: 9 bits (8 data bits + 1 parity bit)
+ * - Depth: 8 bytes
+ * - Type: Circular buffer
  *
- * SCSI FIFO Data Flow:
- * - Enqueue: Add byte at tail position (head + count)
- * - Dequeue: Remove byte from head position
- * - Status: Empty when count=0, Full when count=8
- */
-
-/* SCSI FIFO Operations:
- * - ncr710_scsi_fifo_init() - Initialize 8-deep FIFO
- * - ncr710_scsi_fifo_enqueue() - Add byte to FIFO tail
- * - ncr710_scsi_fifo_dequeue() - Remove byte from FIFO head
- * - ncr710_scsi_fifo_empty/full() - Check FIFO status
+ * Implementation:
+ * - Enqueue: Add byte at tail position ((head + count) % 8)
+ * - Dequeue: Remove byte from head position, advance head
+ * - Status: Empty (count=0), Full (count=8)
+ *
+ * FIFO Operations:
+ * - ncr710_scsi_fifo_init()    - Reset FIFO to empty state
+ * - ncr710_scsi_fifo_enqueue() - Add byte with parity to tail
+ * - ncr710_scsi_fifo_dequeue() - Remove byte with parity from head
+ * - ncr710_scsi_fifo_empty()   - Check if FIFO is empty
+ * - ncr710_scsi_fifo_full()    - Check if FIFO is full
  */
 
 static void ncr710_scsi_fifo_init(NCR710_SCSI_FIFO *fifo)
@@ -630,19 +629,6 @@ static void ncr710_script_scsi_interrupt(NCR710State *s, int stat0)
     }
 }
 
-void ncr710_completion_irq_callback(void *opaque)
-{
-    NCR710State *s = (NCR710State *)opaque;
-
-    s->dsps = s->saved_dsps;
-    if (s->dstat & NCR710_DSTAT_DFE) {
-        s->dstat &= ~NCR710_DSTAT_DFE;
-    }
-    s->dstat |= NCR710_DSTAT_SIR;
-    ncr710_update_irq(s);
-    ncr710_stop_script(s);
-}
-
 static void ncr710_script_dma_interrupt(NCR710State *s, int stat)
 {
     trace_ncr710_script_dma_interrupt(stat, s->dstat);
@@ -770,8 +756,8 @@ static int ncr710_queue_req(NCR710State *s, SCSIRequest *req, uint32_t len)
 {
     NCR710Request *p = (NCR710Request*)req->hba_private;
 
-    if (p->pending) {
-        BADF("Multiple IO pending for request %p\n", p);
+    if (!p) {
+        return -1;
     }
     p->pending = len;
     if ((s->waiting == NCR710_WAIT_RESELECT && !(s->istat & (NCR710_ISTAT_SIP | NCR710_ISTAT_DIP))) ||
@@ -780,7 +766,6 @@ static int ncr710_queue_req(NCR710State *s, SCSIRequest *req, uint32_t len)
         s->current = p;
         return 0;
     } else {
-        p->pending = len;
         s->current = p;
         return 1;
     }
@@ -808,10 +793,7 @@ void ncr710_command_complete(SCSIRequest *req, size_t resid)
         scsi_req_unref(req);
     }
 
-    if (s->waiting == NCR710_WAIT_RESELECT) {
-        s->waiting = NCR710_WAIT_NONE;
-        ncr710_execute_script(s);
-    } else if (s->waiting == NCR710_WAIT_DMA) {
+    if (s->waiting == NCR710_WAIT_RESELECT || s->waiting == NCR710_WAIT_DMA) {
         s->waiting = NCR710_WAIT_NONE;
         ncr710_execute_script(s);
     }
@@ -825,87 +807,75 @@ void ncr710_transfer_data(SCSIRequest *req, uint32_t len)
     assert(req->hba_private);
 
     if (s->waiting == NCR710_WAIT_DMA) {
-
-        /* Update current request with data length */
         NCR710Request *p = (NCR710Request *)req->hba_private;
         if (p) {
             p->dma_len = len;
         }
-        s->dsp -= 8;  /* Back up to the DO_DMA instruction (8 bytes: opcode + address) */
-
+        s->dsp -= 8;
         s->waiting = NCR710_WAIT_NONE;
-
         ncr710_execute_script(s);
         return;
     }
 
     if (s->wait_reselect) {
-
         s->current = (NCR710Request *)req->hba_private;
         s->current->dma_len = len;
-
-        s->waiting = NCR710_WAIT_RESELECT;  /* Mark as reselection in progress */
+        s->waiting = NCR710_WAIT_RESELECT;
     }
 
     if (req->hba_private != s->current ||
-        (ncr710_irq_on_rsl(s) && !(s->scntl1 & NCR710_SCNTL1_CON))|| s->waiting == NCR710_WAIT_RESELECT) {
-        if (ncr710_queue_req(s, req, len) != 0) {
+        (ncr710_irq_on_rsl(s) && !(s->scntl1 & NCR710_SCNTL1_CON)) ||
+        s->waiting == NCR710_WAIT_RESELECT) {
+        int queue_result = ncr710_queue_req(s, req, len);
+        if (queue_result != 0) {
             return;
         }
     }
 
-    /* host adapter (re)connected */
+    /* Host adapter (re)connected */
     s->current->dma_len = len;
     s->command_complete = NCR710_CMD_DATA_READY;
+
     if (!s->current) {
         return;
     }
+
     if (s->waiting) {
         s->scntl1 |= NCR710_SCNTL1_CON;
         s->istat |= NCR710_ISTAT_CON;
         s->sbcl = NCR710_SBCL_IO | NCR710_SBCL_CD | NCR710_SBCL_MSG |
                   NCR710_SBCL_BSY | NCR710_SBCL_SEL | NCR710_SBCL_REQ;
-        uint8_t host_id = (s->scid & 0x07);  /* Extract host ID from SCID register (bits 2-0) */
+        uint8_t host_id = (s->scid & 0x07);
 
+        /* Special case: both target and host are ID 0 */
         if (req->dev->id == 0 && host_id == 0) {
-            /* Special case: both target and host are ID 0 */
-            s->sfbr = 0x00;  /* Linux expects 0x00 for target 0 */
+            s->sfbr = 0x00;
         } else {
-            /* For non-zero IDs, use standard bit positions */
             s->sfbr = (req->dev->id == 0 ? 0 : (1 << req->dev->id)) |
                       (host_id == 0 ? 0 : (1 << host_id));
         }
 
-        /* Set phase to MESSAGE IN for GetReselectionData SCRIPTS */
         ncr710_set_phase(s, PHASE_MI);
 
-        /* Prepare reselection message for GetReselectionData to read:
-         * - Byte 0: IDENTIFY message (0x80 | LUN)
-         * - Bytes 1-2: Tag message if tagged (0x20 = SIMPLE_TAG, then tag number)
-         *
-         * The GetReselectionData SCRIPTS will read 1 byte (for untagged) or
-         * 3 bytes (for tagged) using MOVE instructions in MESSAGE IN phase.
-         */
         if (s->current) {
-            uint8_t identify_msg = 0x80 | (req->lun & 0x07);  /* IDENTIFY + LUN */
+            uint8_t identify_msg = 0x80 | (req->lun & 0x07);
             ncr710_add_msg_byte(s, identify_msg);
 
-            /* If this is a tagged command, add tag bytes */
             if (s->current->tag) {
                 ncr710_add_msg_byte(s, 0x20);  /* SIMPLE_TAG_MSG */
                 ncr710_add_msg_byte(s, s->current->tag & 0xff);
             }
         }
 
-
-        s->sstat0 |= NCR710_SSTAT0_SEL;  /* Set SELECTED bit */
-        s->istat |= NCR710_ISTAT_SIP;    /* Set SCSI interrupt pending */
-        s->dsps = RESELECTED_DURING_SELECTION;  /* Set DSPS to 0x1000 */
+        s->sstat0 |= NCR710_SSTAT0_SEL;
+        s->istat |= NCR710_ISTAT_SIP;
+        s->dsps = RESELECTED_DURING_SELECTION;
+        s->waiting = NCR710_WAIT_NONE;
         ncr710_update_irq(s);
-
-
-        s->waiting = NCR710_WAIT_NONE;  /* Clear waiting flag - reselection is now driver's responsibility */
         return;
+    }
+    if (!s->script_active && !s->waiting) {
+        ncr710_execute_script(s);
     }
 }
 
@@ -1185,31 +1155,15 @@ static void ncr710_do_msgout(NCR710State *s)
                 break;
             }
 
-            case 0x20: /* SIMPLE queue */
+            case 0x20: /* SIMPLE queue tag */
+            case 0x21: /* HEAD of queue tag */
+            case 0x22: /* ORDERED queue tag */
                 if (i < bytes) {
-                    s->select_tag |= buf[i++] | NCR710_TAG_VALID;
+                    uint8_t tag = buf[i++];
+                    s->select_tag = (s->select_tag & 0xFF00) | tag | NCR710_TAG_VALID;
+                    NCR710_DPRINTF("Tagged command: tag=0x%02x, type=0x%02x\n", tag, msg);
                 } else {
                     /* Tag byte not in this chunk; rewind and reparse next loop */
-                    i--; /* put back msg */
-                    goto out_chunk;
-                }
-                break;
-
-            case 0x21: /* HEAD of queue (not implemented) */
-                BADF("HEAD queue not implemented\n");
-                if (i < bytes) {
-                    s->select_tag |= buf[i++] | NCR710_TAG_VALID;
-                } else {
-                    i--;
-                    goto out_chunk;
-                }
-                break;
-
-            case 0x22: /* ORDERED queue (not implemented) */
-                BADF("ORDERED queue not implemented\n");
-                if (i < bytes) {
-                    s->select_tag |= buf[i++] | NCR710_TAG_VALID;
-                } else {
                     i--;
                     goto out_chunk;
                 }
@@ -1296,17 +1250,6 @@ static void ncr710_wait_reselect(NCR710State *s)
 
 }
 
-/* Timer callback to continue script execution */
-void ncr710_script_timer_callback(void *opaque)
-{
-    NCR710State *s = opaque;
-
-
-    if (s->script_active) {
-        ncr710_execute_script(s);
-    }
-}
-
 void ncr710_reselection_retry_callback(void *opaque)
 {
     NCR710State *s = opaque;
@@ -1321,10 +1264,10 @@ void ncr710_reselection_retry_callback(void *opaque)
     }
 
     if (s->istat & (NCR710_ISTAT_SIP | NCR710_ISTAT_DIP)) {
-        timer_mod(s->reselection_retry_timer, qemu_clock_get_ns(QEMU_CLOCK_VIRTUAL));
+        timer_mod(s->reselection_retry_timer,
+                  qemu_clock_get_ns(QEMU_CLOCK_VIRTUAL) + 1000);
         return;
     }
-
 
     NCR710Request *p = s->current;
     uint32_t len = p->pending;
@@ -2282,7 +2225,7 @@ static void ncr710_device_reset(DeviceState *dev)
 static const struct SCSIBusInfo ncr710_scsi_info = {
     .tcq = true,
     .max_target = 8,
-    .max_lun = 8,  /* LUN support buggy, eh? */
+    .max_lun = 8,  /* Full LUN support */
 
     .transfer_data = ncr710_transfer_data,
     .complete = ncr710_command_complete,
@@ -2433,18 +2376,10 @@ static void sysbus_ncr710_realize(DeviceState *dev, Error **errp)
     s->ncr710.dcntl &= ~NCR710_DCNTL_COM;
     s->ncr710.scid = 0x80 | NCR710_HOST_ID;
 
-    s->ncr710.script_timer = timer_new_ns(QEMU_CLOCK_VIRTUAL,
-                                         ncr710_script_timer_callback,
-                                         &s->ncr710);
-
-    s->ncr710.completion_irq_timer = timer_new_ns(QEMU_CLOCK_VIRTUAL,
-                                                   ncr710_completion_irq_callback,
-                                                   &s->ncr710);
-
+    /* Initialize reselection retry timer */
     s->ncr710.reselection_retry_timer = timer_new_ns(QEMU_CLOCK_VIRTUAL,
                                                      ncr710_reselection_retry_callback,
                                                      &s->ncr710);
-
 
     memset(s->ncr710.msg, 0, sizeof(s->ncr710.msg));
 
