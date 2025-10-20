@@ -374,71 +374,71 @@ void ncr710_soft_reset(NCR710State *s)
 const char *ncr710_reg_name(int offset)
 {
     switch (offset) {
-    case NCR710_SCNTL0_REG:  return "SCNTL0";
-    case NCR710_SCNTL1_REG:  return "SCNTL1";
-    case NCR710_SDID_REG:    return "SDID";
-    case NCR710_SIEN_REG:    return "SIEN";
-    case NCR710_SCID_REG:    return "SCID";
-    case NCR710_SXFER_REG:   return "SXFER";
-    case NCR710_SODL_REG:    return "SODL";
-    case NCR710_SOCL_REG:    return "SOCL";
-    case NCR710_SFBR_REG:    return "SFBR";
-    case NCR710_SIDL_REG:    return "SIDL";
-    case NCR710_SBDL_REG:    return "SBDL";
-    case NCR710_SBCL_REG:    return "SBCL";
-    case NCR710_DSTAT_REG:   return "DSTAT";
-    case NCR710_SSTAT0_REG:  return "SSTAT0";
-    case NCR710_SSTAT1_REG:  return "SSTAT1";
-    case NCR710_SSTAT2_REG:  return "SSTAT2";
-    case NCR710_DSA_REG:     return "DSA";
-    case NCR710_DSA_REG + 1:   return "DSA+1";
-    case NCR710_DSA_REG + 2:   return "DSA+2";
-    case NCR710_DSA_REG + 3:   return "DSA+3";
-    case NCR710_CTEST0_REG:  return "CTEST0";
-    case NCR710_CTEST1_REG:  return "CTEST1";
-    case NCR710_CTEST2_REG:  return "CTEST2";
-    case NCR710_CTEST3_REG:  return "CTEST3";
-    case NCR710_CTEST4_REG:  return "CTEST4";
-    case NCR710_CTEST5_REG:  return "CTEST5";
-    case NCR710_CTEST6_REG:  return "CTEST6";
-    case NCR710_CTEST7_REG:  return "CTEST7";
-    case NCR710_TEMP_REG:    return "TEMP";
-    case NCR710_TEMP_REG + 1:  return "TEMP+1";
-    case NCR710_TEMP_REG + 2:  return "TEMP+2";
-    case NCR710_TEMP_REG + 3:  return "TEMP+3";
-    case NCR710_DFIFO_REG:   return "DFIFO";
-    case NCR710_ISTAT_REG:   return "ISTAT";
-    case NCR710_CTEST8_REG:  return "CTEST8";
-    case NCR710_LCRC_REG:    return "LCRC";
-    case NCR710_DBC_REG:     return "DBC";
-    case NCR710_DBC_REG + 1:   return "DBC+1";
-    case NCR710_DBC_REG + 2:   return "DBC+2";
-    case NCR710_DCMD_REG:    return "DCMD";
-    case NCR710_DNAD_REG:    return "DNAD";
-    case NCR710_DNAD_REG + 1:  return "DNAD+1";
-    case NCR710_DNAD_REG + 2:  return "DNAD+2";
-    case NCR710_DNAD_REG + 3:  return "DNAD+3";
-    case NCR710_DSP_REG:     return "DSP";
-    case NCR710_DSP_REG + 1:   return "DSP+1";
-    case NCR710_DSP_REG + 2:   return "DSP+2";
-    case NCR710_DSP_REG + 3:   return "DSP+3";
-    case NCR710_DSPS_REG:    return "DSPS";
-    case NCR710_DSPS_REG + 1:  return "DSPS+1";
-    case NCR710_DSPS_REG + 2:  return "DSPS+2";
-    case NCR710_DSPS_REG + 3:  return "DSPS+3";
-    case NCR710_SCRATCH_REG: return "SCRATCH";
+    case NCR710_SCNTL0_REG:      return "SCNTL0";
+    case NCR710_SCNTL1_REG:      return "SCNTL1";
+    case NCR710_SDID_REG:        return "SDID";
+    case NCR710_SIEN_REG:        return "SIEN";
+    case NCR710_SCID_REG:        return "SCID";
+    case NCR710_SXFER_REG:       return "SXFER";
+    case NCR710_SODL_REG:        return "SODL";
+    case NCR710_SOCL_REG:        return "SOCL";
+    case NCR710_SFBR_REG:        return "SFBR";
+    case NCR710_SIDL_REG:        return "SIDL";
+    case NCR710_SBDL_REG:        return "SBDL";
+    case NCR710_SBCL_REG:        return "SBCL";
+    case NCR710_DSTAT_REG:       return "DSTAT";
+    case NCR710_SSTAT0_REG:      return "SSTAT0";
+    case NCR710_SSTAT1_REG:      return "SSTAT1";
+    case NCR710_SSTAT2_REG:      return "SSTAT2";
+    case NCR710_DSA_REG:         return "DSA";
+    case NCR710_DSA_REG + 1:     return "DSA+1";
+    case NCR710_DSA_REG + 2:     return "DSA+2";
+    case NCR710_DSA_REG + 3:     return "DSA+3";
+    case NCR710_CTEST0_REG:      return "CTEST0";
+    case NCR710_CTEST1_REG:      return "CTEST1";
+    case NCR710_CTEST2_REG:      return "CTEST2";
+    case NCR710_CTEST3_REG:      return "CTEST3";
+    case NCR710_CTEST4_REG:      return "CTEST4";
+    case NCR710_CTEST5_REG:      return "CTEST5";
+    case NCR710_CTEST6_REG:      return "CTEST6";
+    case NCR710_CTEST7_REG:      return "CTEST7";
+    case NCR710_TEMP_REG:        return "TEMP";
+    case NCR710_TEMP_REG + 1:    return "TEMP+1";
+    case NCR710_TEMP_REG + 2:    return "TEMP+2";
+    case NCR710_TEMP_REG + 3:    return "TEMP+3";
+    case NCR710_DFIFO_REG:       return "DFIFO";
+    case NCR710_ISTAT_REG:       return "ISTAT";
+    case NCR710_CTEST8_REG:      return "CTEST8";
+    case NCR710_LCRC_REG:        return "LCRC";
+    case NCR710_DBC_REG:         return "DBC";
+    case NCR710_DBC_REG + 1:     return "DBC+1";
+    case NCR710_DBC_REG + 2:     return "DBC+2";
+    case NCR710_DCMD_REG:        return "DCMD";
+    case NCR710_DNAD_REG:        return "DNAD";
+    case NCR710_DNAD_REG + 1:    return "DNAD+1";
+    case NCR710_DNAD_REG + 2:    return "DNAD+2";
+    case NCR710_DNAD_REG + 3:    return "DNAD+3";
+    case NCR710_DSP_REG:         return "DSP";
+    case NCR710_DSP_REG + 1:     return "DSP+1";
+    case NCR710_DSP_REG + 2:     return "DSP+2";
+    case NCR710_DSP_REG + 3:     return "DSP+3";
+    case NCR710_DSPS_REG:        return "DSPS";
+    case NCR710_DSPS_REG + 1:    return "DSPS+1";
+    case NCR710_DSPS_REG + 2:    return "DSPS+2";
+    case NCR710_DSPS_REG + 3:    return "DSPS+3";
+    case NCR710_SCRATCH_REG:     return "SCRATCH";
     case NCR710_SCRATCH_REG + 1: return "SCRATCH+1";
     case NCR710_SCRATCH_REG + 2: return "SCRATCH+2";
     case NCR710_SCRATCH_REG + 3: return "SCRATCH+3";
-    case NCR710_DMODE_REG:   return "DMODE";
-    case NCR710_DIEN_REG:    return "DIEN";
-    case NCR710_DWT_REG:     return "DWT";
-    case NCR710_DCNTL_REG:   return "DCNTL";
-    case NCR710_ADDER_REG:   return "ADDER";
-    case NCR710_ADDER_REG + 1: return "ADDER+1";
-    case NCR710_ADDER_REG + 2: return "ADDER+2";
-    case NCR710_ADDER_REG + 3: return "ADDER+3";
-    default:                 return "UNKNOWN";
+    case NCR710_DMODE_REG:       return "DMODE";
+    case NCR710_DIEN_REG:        return "DIEN";
+    case NCR710_DWT_REG:         return "DWT";
+    case NCR710_DCNTL_REG:       return "DCNTL";
+    case NCR710_ADDER_REG:       return "ADDER";
+    case NCR710_ADDER_REG + 1:   return "ADDER+1";
+    case NCR710_ADDER_REG + 2:   return "ADDER+2";
+    case NCR710_ADDER_REG + 3:   return "ADDER+3";
+    default:                     return "UNKNOWN";
     }
 }
 
@@ -873,10 +873,10 @@ void ncr710_transfer_data(SCSIRequest *req, uint32_t len)
             uint8_t identify_msg = 0x80 | (req->lun & 0x07);
             ncr710_add_msg_byte(s, identify_msg);
 
-        if (s->current->tag) {
+            if (s->current->tag) {
                 ncr710_add_msg_byte(s, 0x20);  /* SIMPLE_TAG_MSG */
                 ncr710_add_msg_byte(s, s->current->tag & 0xff);
-        }
+            }
         }
 
         s->sstat0 |= NCR710_SSTAT0_SEL;
@@ -1093,11 +1093,11 @@ static void ncr710_do_msgout(NCR710State *s)
                  !ncr710_scsi_fifo_empty(&s->scsi_fifo); j++) {
             uint8_t parity;
             buf[bytes] = ncr710_scsi_fifo_dequeue(&s->scsi_fifo, &parity);
-        if (s->scntl0 & NCR710_SCNTL0_EPC) {
+            if (s->scntl0 & NCR710_SCNTL0_EPC) {
                 if (!ncr710_check_scsi_parity(s, buf[bytes], parity)) {
                     ncr710_handle_parity_error(s);
                 }
-        }
+            }
             bytes++;
         }
 
@@ -1144,11 +1144,7 @@ static void ncr710_do_msgout(NCR710State *s)
                     i--; /* rewind one to reparse later */
                     goto out_chunk;
                 }
-#if ENABLE_DEBUG
-                int ext_len = buf[i++];
-#else
                 i++; /* skip ext_len */
-#endif
 
                 if (i >= bytes) {
                     i -= 2; /* rewind msg + ext_len for next chunk */
@@ -1218,9 +1214,6 @@ static void ncr710_do_msgout(NCR710State *s)
 
             default:
                 if (msg & SCSI_MSG_IDENTIFY) {
-#if ENABLE_DEBUG
-                    bool disconnect_allowed = (msg & 0x40) != 0;
-#endif
                     uint8_t lun = msg & 0x07;
                     s->current_lun = lun;
                     ncr710_set_phase(s, PHASE_CO);
@@ -1532,14 +1525,6 @@ again:
             uint8_t data8;
             int reg;
             int xoperator;
-#if ENABLE_DEBUG
-            static const char *opcode_names[3] = {
-                "Write", "Read", "Read-Modify-Write"
-        };
-            static const char *operator_names[8] = {
-                "MOV", "SHL", "OR", "XOR", "AND", "SHR", "ADD", "ADC"
-        };
-#endif
 
             reg = ((insn >> 16) & 0x7f) | (insn & 0x80);
             data8 = (insn >> 8) & 0xff;
@@ -1705,45 +1690,31 @@ again:
             int reg;
             int n;
             int i;
-#if ENABLE_DEBUG
-            uint32_t original_addr = addr;
-#endif
             bool dsa_relative = (insn & (1 << 28)) != 0;
             bool is_load = (insn & (1 << 24)) != 0;
 
-        if (dsa_relative) {
+            if (dsa_relative) {
                 addr = s->dsa + sextract32(addr, 0, 24);
-        }
+            }
 
             n = (insn & 7);
-        if (n == 0) {
+            if (n == 0) {
                 n = 8;  /* 0 means 8 bytes */
-        }
+            }
 
             reg = (insn >> 16) & 0xff;
 
-        if (is_load) {
+            if (is_load) {
                 ncr710_dma_read(s, addr, data, n);
-                for (i = 0; i < n; i++) {
-                    /* Process data */
-                }
-
                 for (i = 0; i < n; i++) {
                     ncr710_reg_writeb(s, reg + i, data[i]);
                 }
-
-                if (reg == NCR710_DSA_REG && n == 4) {
-#if ENABLE_DEBUG
-                    uint32_t new_dsa = data[0] | (data[1] << 8) |
-                                       (data[2] << 16) | (data[3] << 24);
-#endif
-                }
-        } else {
+            } else {
                 for (i = 0; i < n; i++) {
                     data[i] = ncr710_reg_readb(s, reg + i);
                 }
                 ncr710_dma_write(s, addr, data, n);
-        }
+            }
         }
     }
 
@@ -2082,10 +2053,11 @@ static void ncr710_reg_writeb(NCR710State *s, int offset, uint8_t val)
                 ncr710_script_scsi_interrupt(s, NCR710_SSTAT0_RST);
             }
             /* Enhanced reset handling for second implementation */
-        if (!(old_val & NCR710_SCNTL1_RST)) {
-                NCR710_DPRINTF("NCR710: SCNTL1: SCSI bus reset initiated\n");
-                ncr710_soft_reset(s);
-        }
+            if (!(old_val & NCR710_SCNTL1_RST)) {
+                    NCR710_DPRINTF("NCR710: SCNTL1: SCSI bus reset "
+                                   "initiated\n");
+                    ncr710_soft_reset(s);
+            }
         } else {
             s->sstat0 &= ~NCR710_SSTAT0_RST;
         }
@@ -2202,7 +2174,6 @@ static void ncr710_reg_writeb(NCR710State *s, int offset, uint8_t val)
         break;
 
     case NCR710_CTEST8_REG: /* CTEST8 */
-
         if (val & 0x08) {
             /* No DMA FIFO to flush with direct transfers */
             s->dstat |= NCR710_DSTAT_DFE;  /* Set DMA FIFO Empty */
@@ -2224,42 +2195,25 @@ static void ncr710_reg_writeb(NCR710State *s, int offset, uint8_t val)
 
     CASE_SET_REG32(dnad, NCR710_DNAD_REG)
     case 0x2c: /* DSP[0:7] */
-        {
-            s->dsp &= 0xffffff00;
-            s->dsp |= val;
-        }
+        s->dsp &= 0xffffff00;
+        s->dsp |= val;
         break;
     case 0x2d: /* DSP[8:15] */
-        {
-            s->dsp &= 0xffff00ff;
-            s->dsp |= val << 8;
-        }
+        s->dsp &= 0xffff00ff;
+        s->dsp |= val << 8;
         break;
     case 0x2e: /* DSP[16:23] */
-        {
-            s->dsp &= 0xff00ffff;
-            s->dsp |= val << 16;
-        }
+        s->dsp &= 0xff00ffff;
+        s->dsp |= val << 16;
         break;
     case 0x2f: /* DSP[24:31] */
-        {
-            s->dsp &= 0x00ffffff;
-            s->dsp |= val << 24;
-
-            if (s->current && s->current->resume_offset != 0) {
-                if (s->dsp == s->current->resume_offset) {
-                    /* Resume at saved offset */
-                } else {
-                    /* Different offset */
-                }
-            }
-
-            s->waiting = NCR710_WAIT_NONE;
-            s->script_active = 1;
-            s->istat |= NCR710_ISTAT_CON;
-            ncr710_clear_selection_timeout(s);
-            ncr710_execute_script(s);
-        }
+        s->dsp &= 0x00ffffff;
+        s->dsp |= val << 24;
+        s->waiting = NCR710_WAIT_NONE;
+        s->script_active = 1;
+        s->istat |= NCR710_ISTAT_CON;
+        ncr710_clear_selection_timeout(s);
+        ncr710_execute_script(s);
         break;
     CASE_SET_REG32(dsps, NCR710_DSPS_REG)
     CASE_SET_REG32(scratch, NCR710_SCRATCH_REG)

@@ -98,28 +98,26 @@
 #define NCR710_MAX_MSGIN_LEN    8
 #define NCR710_SCSI_FIFO_SIZE   8
 
-/* State enumerations for clearer code */
 typedef enum {
-    NCR710_WAIT_NONE = 0,           /* Not waiting, actively executing */
-    NCR710_WAIT_RESELECT = 1,       /* Waiting for reselection or disconnect */
-    NCR710_WAIT_DMA = 2,            /* Waiting for DMA operation to complete */
-    NCR710_WAIT_RESERVED = 3        /* Reserved state (currently unused) */
+    NCR710_WAIT_NONE = 0,
+    NCR710_WAIT_RESELECT = 1,
+    NCR710_WAIT_DMA = 2,
+    NCR710_WAIT_RESERVED = 3
 } NCR710WaitState;
 
 typedef enum {
-    NCR710_CMD_PENDING = 0,         /* Command not yet complete */
-    NCR710_CMD_DATA_READY = 1,      /* Transfer data ready */
-    NCR710_CMD_COMPLETE = 2         /* Command fully complete */
+    NCR710_CMD_PENDING = 0,
+    NCR710_CMD_DATA_READY = 1,
+    NCR710_CMD_COMPLETE = 2
 } NCR710CommandState;
 
 typedef enum {
-    NCR710_MSG_ACTION_NONE = 0,     /* No action, continue to command phase */
-    NCR710_MSG_ACTION_DISCONNECT = 1, /* Disconnect after message */
-    NCR710_MSG_ACTION_DATA_OUT = 2, /* Switch to data out phase */
-    NCR710_MSG_ACTION_DATA_IN = 3   /* Switch to data in phase */
+    NCR710_MSG_ACTION_NONE = 0,
+    NCR710_MSG_ACTION_DISCONNECT = 1,
+    NCR710_MSG_ACTION_DATA_OUT = 2,
+    NCR710_MSG_ACTION_DATA_IN = 3
 } NCR710MessageAction;
 
-/* Forward declarations */
 typedef struct NCR710State NCR710State;
 typedef struct NCR710Request NCR710Request;
 
@@ -128,12 +126,10 @@ typedef struct NCR710Request NCR710Request;
  * (9-bit wide with parity)
  */
 typedef struct {
-    /* SCSI FIFO buffer (8 bytes deep) */
     uint8_t data[NCR710_SCSI_FIFO_SIZE];
-    /* Parity bits for each byte (9th bit) */
     uint8_t parity[NCR710_SCSI_FIFO_SIZE];
-    int head;       /* Head pointer for dequeue (0-7) */
-    int count;      /* Number of valid entries (0-8) */
+    int head;
+    int count;
 } NCR710_SCSI_FIFO;
 
 /* Request structure */
@@ -144,21 +140,18 @@ struct NCR710Request {
     uint32_t pending;
     uint8_t status;
     bool active;
-    uint8_t *dma_buf;          /* DMA buffer pointer */
+    uint8_t *dma_buf;
     bool out;
-    uint32_t resume_offset;    /* SCRIPTS resume point after reselection */
-    uint32_t saved_dnad;       /* Saved DMA address for immediate reselection */
+    uint32_t resume_offset;
+    uint32_t saved_dnad;
 };
 
 /* NCR710 State structure */
 struct NCR710State {
     SysBusDevice parent_obj;
-
-    /* Memory and IRQ resources */
     MemoryRegion mmio;
     qemu_irq irq;
 
-    /* SCSI bus */
     SCSIBus bus;
     AddressSpace *as;
 
@@ -166,7 +159,7 @@ struct NCR710State {
     uint8_t scntl0;
     uint8_t scntl1;
     uint8_t sdid;
-    uint8_t sien0;  /* Changed from sien */
+    uint8_t sien0;
     uint8_t scid;
     uint8_t sxfer;
     uint8_t sodl;
@@ -230,7 +223,6 @@ struct NCR710State {
     bool wait_reselect;
 };
 
-/* Define SysBusNCR710State */
 typedef struct SysBusNCR710State {
     SysBusDevice parent_obj;
     MemoryRegion mmio;
@@ -257,15 +249,11 @@ DeviceState *ncr710_device_create_sysbus(hwaddr addr, qemu_irq irq);
 void ncr710_reg_write(void *opaque, hwaddr addr, uint64_t val, unsigned size);
 uint64_t ncr710_reg_read(void *opaque, hwaddr addr, unsigned size);
 void ncr710_soft_reset(NCR710State *s);
-
-/* NCR710 core SCSI callback functions */
 void ncr710_request_cancelled(SCSIRequest *req);
 void ncr710_command_complete(SCSIRequest *req, size_t resid);
 void ncr710_transfer_data(SCSIRequest *req, uint32_t len);
 void ncr710_execute_script(NCR710State *s);
 void ncr710_set_phase(NCR710State *s, int phase);
-
-/* NCR710 timer callback */
 void ncr710_reselection_retry_callback(void *opaque);
 
 #endif /* HW_NCR53C710_H */
