@@ -89,10 +89,8 @@
 #define NCR710_DCNTL_REG        0x3B    /* DMA Control */
 #define NCR710_ADDER_REG        0x3C    /* Adder Sum Output (32-bit, LE) */
 
-/* NCR710 register size */
 #define NCR710_REG_SIZE         0x100
 
-/* Other constants */
 #define NCR710_BUF_SIZE         4096
 #define NCR710_HOST_ID          7
 #define NCR710_MAX_MSGIN_LEN    8
@@ -132,7 +130,6 @@ typedef struct {
     int count;
 } NCR710_SCSI_FIFO;
 
-/* Request structure */
 struct NCR710Request {
     SCSIRequest *req;
     uint32_t tag;
@@ -146,7 +143,6 @@ struct NCR710Request {
     uint32_t saved_dnad;
 };
 
-/* NCR710 State structure */
 struct NCR710State {
     SysBusDevice parent_obj;
     MemoryRegion mmio;
@@ -198,10 +194,8 @@ struct NCR710State {
     uint8_t dcntl;
     uint32_t adder;
 
-    /* FIFO */
     NCR710_SCSI_FIFO scsi_fifo;
 
-    /* Current SCSI command state */
     NCR710Request *current;
     uint8_t status;
     uint8_t msg[NCR710_MAX_MSGIN_LEN];
@@ -216,9 +210,8 @@ struct NCR710State {
     uint32_t saved_dsps;
 
 
-    /* Additional required fields */
-    uint32_t select_tag;       /* Select tag for SCSI device selection */
-    uint8_t current_lun;       /* Current logical unit number */
+    uint32_t select_tag;
+    uint8_t current_lun;
     uint8_t reselection_id;
     bool wait_reselect;
 };
@@ -230,8 +223,6 @@ typedef struct SysBusNCR710State {
     qemu_irq irq;
     NCR710State ncr710;
 } SysBusNCR710State;
-
-#define NCR710_REG_SIZE         0x100
 
 static inline NCR710State *ncr710_from_scsi_bus(SCSIBus *bus)
 {

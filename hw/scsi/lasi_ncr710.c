@@ -27,10 +27,10 @@
 #include "qapi/error.h"
 #include "system/dma.h"
 
-#define HPHW_FIO    5           /* Fixed I/O module */
 #define LASI_710_SVERSION    0x00082
 #define SCNR                 0xBEEFBABE
-#define LASI_710_HVERSION       0x3D
+#define LASI_710_HVERSION    0x3D
+#define HPHW_FIO             5        /* Fixed I/O module */
 
 static uint64_t lasi_ncr710_reg_read(void *opaque, hwaddr addr,
                                     unsigned size)
@@ -118,8 +118,8 @@ static void lasi_ncr710_reg_write(void *opaque, hwaddr addr,
 }
 
 /*
- * req_cancelled, command_complete, transfer data forward to its
- * core coutner part
+ * req_cancelled, command_complete, transfer_data forwards
+ * commands to its core counterparts.
  */
 static void lasi_ncr710_request_cancelled(SCSIRequest *req)
 {
@@ -213,7 +213,6 @@ static void lasi_ncr710_realize(DeviceState *dev, Error **errp)
                   &lasi_ncr710_scsi_info);
     s->ncr710.as = &address_space_memory;
 
-    /* Set up NCR710 default register values */
     s->ncr710.scntl0 = 0xc0;
     s->ncr710.scid = 0x80;
     s->ncr710.dstat = NCR710_DSTAT_DFE;
